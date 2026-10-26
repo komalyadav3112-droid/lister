@@ -1,0 +1,32 @@
+{
+  "name": "lister",
+  "productName": "Lister",
+  "version": "1.0.0",
+  "description": "Tasks, calendar, focus timer, tracker, habits and notes.",
+  "main": "main.js",
+  "author": "Lister",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis --publish never"
+  },
+  "devDependencies": {
+    "electron": "31.7.7",
+    "electron-builder": "24.13.3"
+  },
+  "build": {
+    "appId": "com.lister.app",
+    "productName": "Lister",
+    "icon": "build/icon.png",
+    "files": ["main.js", "preload.js", "build/icon.png"],
+    "extraResources": [{ "from": "../app", "to": "web" }],
+    "win": { "target": "nsis" },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Lister"
+    }
+  }
+}

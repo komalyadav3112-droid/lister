@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Lister timer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=JetBrains+Mono:wght@700&display=swap">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* the Windows app's corner timer: drag it by its card, buttons stay clickable */
+  html, body { background: transparent !important; margin: 0; height: 100%; overflow: hidden; }
+  .pip { height: auto; margin: 6px; border-radius: 16px; border: 1px solid var(--line); box-shadow: 0 8px 24px rgb(0 0 0 / 0.35); -webkit-app-region: drag; }
+  .pip button { -webkit-app-region: no-drag; }
+</style>
+</head>
+<body>
+<div class="pip" id="pipRoot">
+  <div class="pip-top"><span id="pipMode">Focus</span><span class="pip-task" id="pipTask"></span></div>
+  <div class="flip-clock"><div class="digit" id="p0"></div><div class="digit" id="p1"></div><div class="colon"><i></i><i></i></div><div class="digit" id="p2"></div><div class="digit" id="p3"></div></div>
+  <div class="pip-btns">
+    <button type="button" class="primary" data-a="start" id="pipStart">Start</button>
+    <button type="button" class="ghost" data-a="skip">Skip</button>
+    <button type="button" class="ghost" data-a="open">Open Lister</button>
+  </div>
+</div>
+<script>
+const pad = n => String(n).padStart(2, '0');
+let t = null;
+function setDigit(el, v) {
+  if (el.dataset.v === v) return;
+  const old = el.dataset.v ?? v;
+  el.dataset.v = v;
+  const half = (cls, val) => `<div class="half ${cls}"><span>${val}</span></div>`;
+  el.innerHTML = old === v
+    ? half('top', v) + half('bottom', v)
+    : half('top', v) + half('bottom', old) + half('top leaf-top', old) + half('bottom leaf-bottom', v);
+}
+function draw() {
+  if (!t) return;
+  const ms = t.running ? Math.max(0, t.endsAt - Date.now()) : t.remaining;
+  const sec = Math.ceil(ms / 1000), mm = pad(Math.min(99, Math.floor(sec / 60))), ss = pad(sec % 60);
+  [mm[0], mm[1], ss[0], ss[1]].forEach((c, i) => setDigit(document.getElementById('p' + i), c));
+  const active = t.running || t.remaining < t.length;
+  document.getElementById('pipMode').textContent = t.mode === 'work' ? (t.running ? 'Focusing' : 'Paused') : (t.mode === 'long' ? 'Long break' : 'Short break');
+  document.getElementById('pipTask').textContent = t.taskTitle || '';
+  document.getElementById('pipStart').textContent = t.running ? 'Pause' : (active ? 'Resume' : 'Start');
+  document.getElementById('pipRoot').classList.toggle('is-break', t.mode !== 'work');
+}
+if (window.listerDesktop) {
+  window.listerDesktop.onTimer(x => { t = x; document.documentElement.dataset.theme = x.theme || 'dark'; draw(); });
+  document.addEventListener('click', e => { const b = e.target.closest('[data-a]'); if (b) window.listerDesktop.action(b.dataset.a); });
+}
+setInterval(draw, 250);
+</script>
+</body>
+</html>

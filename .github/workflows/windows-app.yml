@@ -1,0 +1,28 @@
+# Builds the Lister Windows installer after every change and attaches it to a GitHub release.
+name: Build Windows app
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm pkg set version=1.0.${{ github.run_number }}
+      - run: npm install
+      - run: npx electron-builder --win nsis --publish never
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          name: Lister 1.0.${{ github.run_number }}
+          body: Download **Lister-Setup-1.0.${{ github.run_number }}.exe** below and run it to install or update Lister.
+          files: desktop/dist/*.exe

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lister</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#2f5bd3">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <nav class="side" aria-label="Pages">
+    <div class="brand"><span>Lister</span></div>
+    <button type="button" class="nav-btn" data-action="nav" data-page="tasks">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>Tasks</button>
+    <button type="button" class="nav-btn" data-action="nav" data-page="calendar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Calendar</button>
+    <button type="button" class="nav-btn" data-action="nav" data-page="focus">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>Focus</button>
+    <button type="button" class="nav-btn" data-action="nav" data-page="tracker">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Tracker</button>
+    <button type="button" class="nav-btn" data-action="nav" data-page="habits">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>Habits</button>
+    <button type="button" class="nav-btn" data-action="nav" data-page="notes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/></svg>Notes</button>
+    <div class="nav-spacer"></div>
+    <label class="theme-quick" for="themeQuick">Theme
+      <select id="themeQuick">
+        <option value="dark">Dark</option>
+        <option value="clean">Clean</option>
+        <option value="colorful">Colorful</option>
+        <option value="minimal">Minimal</option>
+        <option value="auto">Auto</option>
+      </select>
+    </label>
+    <button type="button" class="mini-timer" id="miniTimer" data-action="nav" data-page="focus" hidden></button>
+    <button type="button" class="nav-btn" data-action="nav" data-page="settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Settings</button>
+  </nav>
+
+  <main>
+    <!-- TASKS -->
+    <section class="page" data-page="tasks" hidden>
+      <header class="page-head">
+        <div><h1>Tasks</h1><p class="sub" id="todayLabel"></p></div>
+        <p class="tally"><b id="tallyOpen">0</b> open · <span id="tallyDone">0</span> done today</p>
+      </header>
+      <form class="quick" id="quickAdd" autocomplete="off">
+        <div class="quick-row">
+          <input id="quickTitle" placeholder="Add a task, e.g. &quot;Study maths tomorrow 2pm to 5pm&quot;" maxlength="200" aria-label="New task">
+          <button type="button" class="ghost" data-action="task-new">Details</button>
+          <button type="submit" class="primary">Add</button>
+        </div>
+        <p class="quick-hint" id="quickHint">Add a date or a time range and it goes on your calendar too.</p>
+      </form>
+      <div class="toolbar">
+        <nav class="tabs" id="taskTabs" aria-label="Task views"></nav>
+        <input type="search" id="taskSearch" placeholder="Search tasks" aria-label="Search tasks">
+      </div>
+      <div class="chips" id="taskChips"></div>
+      <ul class="rows" id="taskRows"></ul>
+      <div class="empty" id="taskEmpty" hidden></div>
+      <div class="foot-row"><button type="button" class="link" id="clearDone" data-action="clear-done" hidden>Clear completed</button></div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section class="page page-wide" data-page="calendar" hidden>
+      <header class="page-head">
+        <div><h1 id="calTitle">Calendar</h1><p class="sub">Tasks with a time range show as blocks. Click an empty slot to add one.</p></div>
+        <div class="cal-controls">
+          <div class="seg" id="calModes">
+            <button type="button" data-action="cal-mode" data-mode="week">Week</button>
+            <button type="button" data-action="cal-mode" data-mode="month">Month</button>
+          </div>
+          <div class="btn-row">
+            <button type="button" class="ghost icon" data-action="cal-move" data-dir="-1" aria-label="Previous">‹</button>
+            <button type="button" class="ghost" data-action="cal-today">Today</button>
+            <button type="button" class="ghost icon" data-action="cal-move" data-dir="1" aria-label="Next">›</button>
+          </div>
+        </div>
+      </header>
+      <div class="cal-scroll"><div id="calBody"></div></div>
+    </section>
+
+    <!-- FOCUS -->
+    <section class="page" data-page="focus" hidden>
+      <header class="page-head">
+        <div><h1>Focus</h1><p class="sub">Work in timed sessions with short breaks in between.</p></div>
+      </header>
+      <div class="focus-card">
+        <div class="seg" id="focusModes">
+          <button type="button" data-action="focus-mode" data-mode="work">Focus</button>
+          <button type="button" data-action="focus-mode" data-mode="short">Short break</button>
+          <button type="button" data-action="focus-mode" data-mode="long">Long break</button>
+        </div>
+        <div class="flip-clock" id="flipClock" role="timer" aria-live="off">
+          <div class="digit" id="d0"></div><div class="digit" id="d1"></div>
+          <div class="colon"><i></i><i></i></div>
+          <div class="digit" id="d2"></div><div class="digit" id="d3"></div>
+        </div>
+        <p class="focus-round" id="focusRound"></p>
+        <div class="focus-btns">
+          <button type="button" class="primary big" data-action="focus-start" id="focusStart">Start</button>
+          <button type="button" class="ghost" data-action="focus-reset">Reset</button>
+          <button type="button" class="ghost" data-action="focus-skip">Skip</button>
+          <button type="button" class="ghost" data-action="pip-open" title="Keeps a small timer on top of your other windows">Pop out timer</button>
+        </div>
+        <div class="focus-opts">
+          <label class="field">Working on
+            <select id="focusTask"></select>
+          </label>
+          <label class="field">Ticking sound
+            <select id="tickSound"></select>
+          </label>
+          <label class="field vol">Volume
+            <input type="range" id="tickVol" min="5" max="100" step="5">
+          </label>
+          <button type="button" class="ghost" data-action="tick-preview" id="tickPreview">Preview</button>
+        </div>
+        <label class="check-row"><input type="checkbox" id="autoPip"> Pop out the small timer when I start a session</label>
+      </div>
+      <div class="focus-summary">
+        <div class="tile"><span class="k">Focused today</span><b id="focusTodayMin">0 min</b><span class="sub" id="focusTodayCount"></span></div>
+        <div class="tile"><span class="k">This week</span><b id="focusWeekMin">0 min</b><span class="sub" id="focusWeekCount"></span></div>
+      </div>
+      <div class="panel">
+        <h2>Recent sessions</h2>
+        <ul class="session-list" id="sessionList"></ul>
+      </div>
+    </section>
+
+    <!-- TRACKER -->
+    <section class="page" data-page="tracker" hidden>
+      <header class="page-head">
+        <div><h1>Tracker</h1><p class="sub">How much you finish and how long you focus.</p></div>
+        <div class="seg" id="trackRange">
+          <button type="button" data-action="track-range" data-days="7">7 days</button>
+          <button type="button" data-action="track-range" data-days="30">30 days</button>
+        </div>
+      </header>
+      <div id="trackBody"></div>
+    </section>
+
+    <!-- HABITS -->
+    <section class="page" data-page="habits" hidden>
+      <header class="page-head">
+        <div><h1>Habits</h1><p class="sub">Tick each day you do it. Streaks count the days you planned.</p></div>
+      </header>
+      <form class="quick" id="habitAdd" autocomplete="off">
+        <div class="quick-row">
+          <input id="habitName" placeholder="New habit, e.g. Read 10 pages" maxlength="80" aria-label="New habit">
+          <button type="submit" class="primary">Add habit</button>
+        </div>
+      </form>
+      <div class="habit-list" id="habitList"></div>
+      <div class="empty" id="habitEmpty" hidden></div>
+    </section>
+
+    <!-- NOTES -->
+    <section class="page page-wide" data-page="notes" hidden>
+      <header class="page-head">
+        <div><h1>Notes</h1></div>
+        <button type="button" class="primary" data-action="note-new">New note</button>
+      </header>
+      <div class="notes">
+        <aside class="note-side">
+          <input type="search" id="noteSearch" placeholder="Search notes" aria-label="Search notes">
+          <ul class="note-list" id="noteList"></ul>
+        </aside>
+        <div class="note-editor">
+          <div class="empty" id="noteEmpty"><strong>No note open</strong>Pick a note on the left, or make a new one.</div>
+          <div class="note-form" id="noteForm" hidden>
+            <input id="noteTitle" placeholder="Title" maxlength="120" aria-label="Note title">
+            <textarea id="noteBody" placeholder="Write anything…" aria-label="Note text"></textarea>
+            <div class="note-foot">
+              <span class="sub" id="noteSaved"></span><span class="spacer"></span>
+              <button type="button" class="ghost" data-action="note-pin" id="notePin">Pin</button>
+              <button type="button" class="ghost danger" data-action="note-delete">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
+    <section class="page" data-page="settings" hidden>
+      <header class="page-head"><div><h1>Settings</h1></div></header>
+      <section class="panel">
+        <h2>Theme</h2>
+        <p class="sub">Pick how Lister looks on this laptop. When you share Lister later, each person picks their own.</p>
+        <div class="themes" id="themeList"></div>
+      </section>
+      <section class="panel">
+        <h2>Reminders</h2>
+        <p class="sub" id="notifyStatus"></p>
+        <div class="btn-row">
+          <button type="button" class="primary" data-action="notify-on" id="notifyOn">Turn on notifications</button>
+          <button type="button" class="ghost" data-action="notify-test">Send a test reminder</button>
+        </div>
+        <label class="check-row"><input type="checkbox" id="setSound"> Play a chime with reminders and when a timer ends</label>
+        <p class="hint">Reminders arrive while Lister is open, even when it is minimized. Keep the Lister window open in the background.</p>
+      </section>
+      <section class="panel">
+        <h2>Focus timer</h2>
+        <div class="grid4">
+          <label class="field">Focus minutes<input type="number" id="setWork" min="1" max="99"></label>
+          <label class="field">Short break<input type="number" id="setShort" min="1" max="99"></label>
+          <label class="field">Long break<input type="number" id="setLong" min="1" max="99"></label>
+          <label class="field">Sessions before long break<input type="number" id="setRounds" min="1" max="12"></label>
+        </div>
+      </section>
+      <section class="panel">
+        <h2>Backup</h2>
+        <p class="sub" id="backupStatus"></p>
+        <div class="btn-row">
+          <button type="button" class="primary" data-action="export">Save a backup file</button>
+          <button type="button" class="ghost" data-action="import">Restore from a backup</button>
+          <input type="file" id="importFile" accept=".json,application/json" hidden>
+        </div>
+      </section>
+      <section class="panel" id="installPanel">
+        <h2>Install as an app</h2>
+        <ol class="steps">
+          <li>In Microsoft Edge, click the <b>App available</b> icon at the right end of the address bar. Or open the <b>⋯</b> menu, then <b>Apps</b>, then <b>Install this site as an app</b>.</li>
+          <li>Click <b>Install</b>. Lister opens in its own window and appears in the Start menu.</li>
+          <li>Right-click the Lister icon on the taskbar and choose <b>Pin to taskbar</b>.</li>
+        </ol>
+      </section>
+      <section class="panel">
+        <h2>Delete everything</h2>
+        <p class="sub">Removes all tasks, habits, notes and focus history from this laptop. Save a backup first.</p>
+        <button type="button" class="ghost danger" data-action="wipe">Delete all data</button>
+      </section>
+    </section>
+  </main>
+</div>
+
+<datalist id="listNames"></datalist>
+
+<dialog id="taskDialog" aria-labelledby="tdHeading">
+  <form id="taskForm" autocomplete="off">
+    <h2 id="tdHeading">Task</h2>
+    <input id="tdTitle" class="title-input" placeholder="What needs doing?" maxlength="200" aria-label="Task name">
+    <div class="grid3">
+      <label class="field">Date<input type="date" id="tdDue"></label>
+      <label class="field">From<input type="time" id="tdStart"></label>
+      <label class="field">To<input type="time" id="tdEnd"></label>
+      <label class="field">Reminder
+        <select id="tdRemind">
+          <option value="">No reminder</option>
+          <option value="0">When it starts</option>
+          <option value="10">10 min before</option>
+          <option value="30">30 min before</option>
+          <option value="60">1 hour before</option>
+          <option value="1440">1 day before</option>
+        </select>
+      </label>
+      <label class="field">Repeat
+        <select id="tdRepeat">
+          <option value="">Doesn't repeat</option>
+          <option value="daily">Every day</option>
+          <option value="weekdays">Every weekday</option>
+          <option value="weekly">Every week</option>
+          <option value="monthly">Every month</option>
+        </select>
+      </label>
+      <label class="field">Priority
+        <select id="tdPrio">
+          <option value="0">None</option>
+          <option value="1">Low</option>
+          <option value="2">Medium</option>
+          <option value="3">High</option>
+        </select>
+      </label>
+      <label class="field span3">List<input id="tdList" list="listNames" placeholder="Personal" maxlength="30"></label>
+    </div>
+    <div class="field">
+      <span>Steps</span>
+      <ul class="subs" id="tdSubs"></ul>
+      <input id="tdSubNew" placeholder="Add a step and press Enter" maxlength="120" aria-label="New step">
+    </div>
+    <label class="field">Notes<textarea id="tdNotes" rows="3"></textarea></label>
+    <p class="hint" id="tdHint"></p>
+    <div class="dialog-btns">
+      <button type="button" class="ghost danger" id="tdDelete" data-action="task-delete">Delete</button>
+      <span class="spacer"></span>
+      <button type="button" class="ghost" data-action="dialog-close">Cancel</button>
+      <button type="submit" class="primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="clashDialog" aria-labelledby="cdHeading">
+  <form id="clashForm" autocomplete="off">
+    <h2 id="cdHeading">This time clashes with another task</h2>
+    <p class="sub" id="cdText"></p>
+    <ul class="clash-list" id="cdList"></ul>
+    <button type="button" class="primary clash-move" data-action="clash-move" id="cdMove">Move to the next free time</button>
+    <div class="clash-pick">
+      <span class="clash-label">Or choose another time</span>
+      <div class="grid3">
+        <label class="field">Date<input type="date" id="cdDue"></label>
+        <label class="field">From<input type="time" id="cdStart"></label>
+        <label class="field">To<input type="time" id="cdEnd"></label>
+      </div>
+      <p class="hint" id="cdHint"></p>
+      <button type="button" class="ghost" data-action="clash-custom">Use this time</button>
+    </div>
+    <div class="dialog-btns">
+      <button type="button" class="link" data-action="clash-back">Back to editing</button>
+      <span class="spacer"></span>
+      <button type="button" class="ghost" data-action="clash-keep">Keep both at the same time</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="habitDialog" aria-labelledby="hdHeading">
+  <form id="habitForm" autocomplete="off">
+    <h2 id="hdHeading">Habit</h2>
+    <label class="field">Name<input id="hdName" maxlength="80"></label>
+    <div class="field"><span>Days</span><div class="day-picks" id="hdDays"></div></div>
+    <label class="field">Daily reminder (optional)<input type="time" id="hdRemind"></label>
+    <div class="dialog-btns">
+      <button type="button" class="ghost danger" data-action="habit-delete">Delete</button>
+      <span class="spacer"></span>
+      <button type="button" class="ghost" data-action="dialog-close">Cancel</button>
+      <button type="submit" class="primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" hidden><span id="toastMsg"></span><button type="button" id="toastBtn" data-action="toast-undo">Undo</button></div>
+
+<script src="app.js"></script>
+</body>
+</html>
